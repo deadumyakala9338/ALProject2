@@ -1,4 +1,4 @@
-page 70659914 "ALV Cognitive ImageFiles"
+page 50700 "ALV Cognitive ImageFiles"
 {
     Caption = 'ALV Cognitive ImageFiles';
     ApplicationArea = All;
@@ -11,13 +11,13 @@ page 70659914 "ALV Cognitive ImageFiles"
         {
             repeater(Group)
             {
-                field("ImageURL"; "ImageURL")
+                field("ImageURL"; Rec."ImageURL")
                 {
                     ApplicationArea = All;
                     Caption = 'ImageURL';
                 }
 
-                field("CognitiveResult"; "CognitiveResult")
+                field("CognitiveResult"; Rec."CognitiveResult")
                 {
                     ApplicationArea = All;
                     Caption = 'Code';

@@ -1,4 +1,4 @@
-table 70659914 "ALV Cognitive ImageFiles"
+table 50700 "ALV Cognitive ImageFiles"
 {
     DataClassification = ToBeClassified;
 

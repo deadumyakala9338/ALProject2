@@ -1,4 +1,4 @@
-codeunit 70659914 "ALV Cognitive Service API"
+codeunit 50700 "ALV Cognitive Service API"
 {
 
     procedure GetCognitive(var imageRec: Record "ALV Cognitive ImageFiles"): Boolean

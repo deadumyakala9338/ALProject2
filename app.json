@@ -1,7 +1,7 @@
 {
   "id": "edae2241-4afd-4925-8248-8be1f2447922",
-  "name": "ALProject2",
-  "publisher": "Default publisher",
+  "name": "D365BC-AzureCongnitive",
+  "publisher": "Tectura Japan K.K.",
   "version": "1.0.0.0",
   "brief": "",
   "description": "",
@@ -16,8 +16,8 @@
   "application": "20.0.0.0",
   "idRanges": [
     {
-      "from": 50100,
-      "to": 50149
+      "from": 50700,
+      "to": 50749
     }
   ],
   "resourceExposurePolicy": {

@@ -1,4 +1,4 @@
-table 70659915 "ALV Cognitive Configuration"
+table 50701 "ALV Cognitive Configuration"
 {
     DataClassification = ToBeClassified;
 
