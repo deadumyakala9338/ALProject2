@@ -1,9 +1,9 @@
-page 50701 "ALV Cognitive Configuration"
+page 50701 "TJP Cognitive Service Setup"
 {
-    Caption = 'ALV Cognitive Configuration';
+    Caption = 'TJP - Cognitive Configuration';
     ApplicationArea = All;
     UsageCategory = Lists;
-    SourceTable = "ALV Cognitive Configuration";
+    SourceTable = "TJP Cognitive Service Setup";
 
     layout
     {

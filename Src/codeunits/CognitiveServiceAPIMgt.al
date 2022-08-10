@@ -1,9 +1,9 @@
-codeunit 50700 "ALV Cognitive Service API"
+codeunit 50700 "TJP Cognitive Service API Mgt."
 {
 
-    procedure GetCognitive(var imageRec: Record "ALV Cognitive ImageFiles"): Boolean
+    procedure GetCognitive(var imageRec: Record "TJP Cognitive ImageFiles"): Boolean
     var
-        configuration: Record "ALV Cognitive Configuration";
+        configuration: Record "TJP Cognitive Service Setup";
         endpoint: Text;
         apim_key: Text;
 
@@ -34,18 +34,18 @@ codeunit 50700 "ALV Cognitive Service API"
         headersAnalyze.Add('Content-Type', 'application/json');
         headersAnalyze.Add('Ocp-Apim-Subscription-Key', apim_key);
 
-        if not clientAnalyze.Post(endpoint, contentAnalyze, responseAnalyze) then Error('Invalid http response');
-        if not responseAnalyze.IsSuccessStatusCode then Error('Error in http response status');
+        if not clientAnalyze.Post(endpoint, contentAnalyze, responseAnalyze) then
+            Error('Invalid http response');
+        if not responseAnalyze.IsSuccessStatusCode then
+            Error('Error in http response status');
         if (responseAnalyze.Headers.Contains('Operation-Location')) then begin
             responseAnalyze.Headers.GetValues('Operation-Location', operationLocations);
             operationLocation := operationLocations[1];
-
             status := '';
             while (status <> 'succeeded') do begin
                 status := GetCognitiveResult(imageRec, operationLocation);
             end;
-        end
-        else begin
+        end else begin
             Error('Error in Operation-Location');
         end;
 
@@ -53,9 +53,9 @@ codeunit 50700 "ALV Cognitive Service API"
     end;
 
 
-    procedure GetCognitiveResult(var imageRec: Record "ALV Cognitive ImageFiles"; var operationLocation: Text): Text
+    procedure GetCognitiveResult(var imageRec: Record "TJP Cognitive ImageFiles"; var operationLocation: Text): Text
     var
-        configuration: Record "ALV Cognitive Configuration";
+        configuration: Record "TJP Cognitive Service Setup";
         apim_key: Text;
 
         headersResult: HttpHeaders;
@@ -91,9 +91,12 @@ codeunit 50700 "ALV Cognitive Service API"
         status := '';
         clientResult.Clear();
         httpStatus := clientResult.Send(requestResult, responseResult);
-        if not httpStatus then Error('Invalid http response');
-        if not responseResult.IsSuccessStatusCode then Error('Error in http response status');
-        if not responseResult.Content().ReadAs(responseText) then Error('Error in http response content');
+        if not httpStatus then
+            Error('Invalid http response');
+        if not responseResult.IsSuccessStatusCode then
+            Error('Error in http response status');
+        if not responseResult.Content().ReadAs(responseText) then
+            Error('Error in http response content');
 
         if not readJsonObject.ReadFrom(responseText) then
             Error('Invalid response, expected an JSON array as root object');

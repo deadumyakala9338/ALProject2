@@ -1,7 +1,5 @@
-table 50700 "ALV Cognitive ImageFiles"
+table 50700 "TJP Cognitive ImageFiles"
 {
-    DataClassification = ToBeClassified;
-
     fields
     {
         field(1; "ImageURL"; Text[250])

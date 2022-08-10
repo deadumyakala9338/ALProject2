@@ -1,7 +1,5 @@
-table 50701 "ALV Cognitive Configuration"
+table 50701 "TJP Cognitive Service Setup"
 {
-    DataClassification = ToBeClassified;
-
     fields
     {
         field(1; "Endpoint"; Text[250])

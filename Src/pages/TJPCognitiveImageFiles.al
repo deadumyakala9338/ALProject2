@@ -1,9 +1,9 @@
-page 50700 "ALV Cognitive ImageFiles"
+page 50700 "TJP Cognitive ImageFiles"
 {
-    Caption = 'ALV Cognitive ImageFiles';
+    Caption = 'TJP - Cognitive ImageFiles';
     ApplicationArea = All;
     UsageCategory = Lists;
-    SourceTable = "ALV Cognitive ImageFiles";
+    SourceTable = "TJP Cognitive ImageFiles";
 
     layout
     {
@@ -22,9 +22,6 @@ page 50700 "ALV Cognitive ImageFiles"
                     ApplicationArea = All;
                     Caption = 'Code';
                 }
-
-
-
             }
         }
     }
@@ -44,7 +41,7 @@ page 50700 "ALV Cognitive ImageFiles"
 
                 trigger OnAction();
                 var
-                    fileService: Codeunit "ALV Cognitive Service API";
+                    fileService: Codeunit "TJP Cognitive Service API Mgt.";
                 begin
                     fileService.GetCognitive(Rec);
                 end;
