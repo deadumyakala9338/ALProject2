@@ -1,22 +1,20 @@
-table 50700 "TJP Cognitive ImageFiles"
+table 50701 "TJP Form Recognizer Setup"
 {
     fields
     {
-        field(1; "ImageURL"; Text[250])
+        field(1; "Endpoint"; Text[250])
         {
             DataClassification = CustomerContent;
         }
-
-        field(2; "CognitiveResult"; Text[250])
+        field(2; "Apim_key"; Text[250])
         {
             DataClassification = CustomerContent;
         }
-
     }
 
     keys
     {
-        key(PK; ImageURL)
+        key(PK; Endpoint)
         {
             Clustered = true;
         }

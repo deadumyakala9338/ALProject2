@@ -1,49 +1,54 @@
 codeunit 50700 "TJP Cognitive Service API Mgt."
 {
 
-    procedure GetCognitive(var imageRec: Record "TJP Cognitive ImageFiles"): Boolean
+    procedure GetCognitive(FileName: Text): Boolean
     var
-        configuration: Record "TJP Cognitive Service Setup";
-        endpoint: Text;
-        apim_key: Text;
-
-        clientAnalyze: HttpClient;
-        responseAnalyze: HttpResponseMessage;
-        headersAnalyze: HttpHeaders;
-        contentAnalyze: HttpContent;
-
-        jsonContent: Text;
-        toJsonObj: JsonObject;
-        operationLocations: Array[10] of Text;
-        operationLocation: Text;
-        status: Text;
+        TJPFormRecognizerSetup: Record "TJP Form Recognizer Setup";
+        TJPAzureContainersetup: Record "TJP Azure Container setup";
+        ContentAnalyze: HttpContent;
+        HeadersAnalyze: HttpHeaders;
+        ClientAnalyze: HttpClient;
+        ResponseAnalyze: HttpResponseMessage;
+        ToJsonObj: JsonObject;
+        ServiceEndpointUri: Text;
+        ServiceApimKey: Text;
+        SourceFileUri: Text;
+        JsonContent: Text;
+        RequestStatus: Text;
+        OperationLocation: Text;
+        OperationLocations: Array[10] of Text;
     begin
-        if not configuration.FindFirst() then exit(false);
+        if not TJPFormRecognizerSetup.FindFirst() then
+            exit(false);
 
-        endpoint := configuration.Endpoint;
-        apim_key := configuration.Apim_key;
+        TJPAzureContainersetup.Get();
 
-        toJsonObj.Add('source', imageRec.ImageURL);
-        toJsonObj.WriteTo(jsonContent);
+        SourceFileUri := TJPAzureContainersetup."Container Path" + '/' + TJPAzureContainersetup."Container Name" + '/' + FileName;
+        ServiceEndpointUri := TJPFormRecognizerSetup.Endpoint;
+        ServiceApimKey := TJPFormRecognizerSetup.Apim_key;
 
-        contentAnalyze.Clear();
-        contentAnalyze.WriteFrom(jsonContent);
-        contentAnalyze.Getheaders(headersAnalyze);
-        if (headersAnalyze.Contains('Content-Type')) then
-            headersAnalyze.Remove('Content-Type');
-        headersAnalyze.Add('Content-Type', 'application/json');
-        headersAnalyze.Add('Ocp-Apim-Subscription-Key', apim_key);
+        ToJsonObj.Add('source', SourceFileUri);
+        ToJsonObj.WriteTo(JsonContent);
 
-        if not clientAnalyze.Post(endpoint, contentAnalyze, responseAnalyze) then
+        ContentAnalyze.Clear();
+        ContentAnalyze.WriteFrom(JsonContent);
+        ContentAnalyze.Getheaders(HeadersAnalyze);
+        if (HeadersAnalyze.Contains('Content-Type')) then
+            HeadersAnalyze.Remove('Content-Type');
+        HeadersAnalyze.Add('Content-Type', 'application/json');
+        HeadersAnalyze.Add('Ocp-Apim-Subscription-Key', ServiceApimKey);
+
+        if not ClientAnalyze.Post(ServiceEndpointUri, ContentAnalyze, ResponseAnalyze) then
             Error('Invalid http response');
-        if not responseAnalyze.IsSuccessStatusCode then
+        if not ResponseAnalyze.IsSuccessStatusCode then
             Error('Error in http response status');
-        if (responseAnalyze.Headers.Contains('Operation-Location')) then begin
-            responseAnalyze.Headers.GetValues('Operation-Location', operationLocations);
-            operationLocation := operationLocations[1];
-            status := '';
-            while (status <> 'succeeded') do begin
-                status := GetCognitiveResult(imageRec, operationLocation);
+        if (ResponseAnalyze.Headers.Contains('Operation-Location')) then begin
+            ResponseAnalyze.Headers.GetValues('Operation-Location', OperationLocations);
+            OperationLocation := OperationLocations[1];
+            RequestStatus := '';
+            while (RequestStatus <> 'succeeded') do begin
+                Sleep(5000);
+                RequestStatus := GetCognitiveResult(OperationLocation);
             end;
         end else begin
             Error('Error in Operation-Location');
@@ -53,65 +58,55 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
     end;
 
 
-    procedure GetCognitiveResult(var imageRec: Record "TJP Cognitive ImageFiles"; var operationLocation: Text): Text
+    procedure GetCognitiveResult(var operationLocation: Text): Text
     var
-        configuration: Record "TJP Cognitive Service Setup";
-        apim_key: Text;
-
-        headersResult: HttpHeaders;
-        clientResult: HttpClient;
-        responseResult: HttpResponseMessage;
-        requestResult: HttpRequestMessage;
-
-        responseText: Text;
-
-        toJsonObj: JsonObject;
-        readJsonToken: JsonToken;
-        readJsonValue: JsonValue;
-        readJsonObject: JsonObject;
-        readJsonArray: JsonArray;
-        readJsonText: Text;
-
-        httpStatus: Boolean;
-        status: Text;
-
-        query: Text;
-        returnValueToken: JsonToken;
+        TJPFormRecognizerSetup: Record "TJP Form Recognizer Setup";
+        RequestResult: HttpRequestMessage;
+        HeadersResult: HttpHeaders;
+        ClientResult: HttpClient;
+        ResponseResult: HttpResponseMessage;
+        ReadJsonObject: JsonObject;
+        ServiceApimKey: Text;
+        ResponseText: Text;
+        Resultstatus: Text;
+        HttpStatus: Boolean;
+        VendNoQuery: Text;
+        VendorNo: Text;
+        VendNoToken: JsonToken;
         returnValue: Text;
     begin
-        if not configuration.FindFirst() then Error('Configuration error');
+        if not TJPFormRecognizerSetup.FindFirst() then
+            Error('Configuration error');
 
-        apim_key := configuration.Apim_key;
+        ServiceApimKey := TJPFormRecognizerSetup.Apim_key;
 
-        requestResult.Getheaders(headersResult);
-        headersResult.Add('Ocp-Apim-Subscription-Key', apim_key);
-        requestResult.Method := 'GET';
-        requestResult.SetRequestUri(operationLocation);
+        RequestResult.Getheaders(HeadersResult);
+        HeadersResult.Add('Ocp-Apim-Subscription-Key', ServiceApimKey);
+        RequestResult.Method := 'GET';
+        RequestResult.SetRequestUri(operationLocation);
 
-        status := '';
-        clientResult.Clear();
-        httpStatus := clientResult.Send(requestResult, responseResult);
+        Resultstatus := '';
+        ClientResult.Clear();
+        httpStatus := ClientResult.Send(RequestResult, ResponseResult);
         if not httpStatus then
-            Error('Invalid http response');
-        if not responseResult.IsSuccessStatusCode then
-            Error('Error in http response status');
-        if not responseResult.Content().ReadAs(responseText) then
+            Error('Invalid http response 2');
+        if not ResponseResult.IsSuccessStatusCode then
+            Error('Error in http response status 2');
+        if not ResponseResult.Content().ReadAs(ResponseText) then
             Error('Error in http response content');
-
-        if not readJsonObject.ReadFrom(responseText) then
+        if not ReadJsonObject.ReadFrom(ResponseText) then
             Error('Invalid response, expected an JSON array as root object');
 
-        status := GetJsonToken(readJsonObject, 'status').AsValue().AsText();
+        Message(ResponseText);
 
-        if (status = 'succeeded') then begin
-            query := '$.analyzeResult.documentResults[0].fields.ImportoPagato.text';
-            readJsonObject.SelectToken(query, returnValueToken);
-
-            returnValue := returnValueToken.AsValue().AsText();
-            imageRec.CognitiveResult := returnValue;
+        Resultstatus := GetJsonToken(ReadJsonObject, 'status').AsValue().AsText();
+        if (Resultstatus = 'succeeded') then begin
+            VendNoQuery := '$.analyzeResult.documentResults[0].fields.VendorNo.text';
+            ReadJsonObject.SelectToken(VendNoQuery, VendNoToken);
+            VendorNo := VendNoToken.AsValue().AsText();
+            Message('%1', VendorNo);
         end;
-
-        exit(status);
+        exit(Resultstatus);
     end;
 
     procedure GetJsonToken(JsonObject: JsonObject; TokenKey: text) JsonToken: JsonToken;
@@ -125,7 +120,5 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
         if not JsonObject.SelectToken(Path, JsonToken) then
             Error('Could not find a token with path %1', Path);
     end;
-
-
 }
 

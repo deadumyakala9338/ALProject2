@@ -1,9 +1,9 @@
-page 50701 "TJP Cognitive Service Setup"
+page 50701 "TJP Form Recognizer Setup"
 {
-    Caption = 'TJP - Cognitive Configuration';
+    Caption = 'TJP - Form Recognizer Setup';
     ApplicationArea = All;
     UsageCategory = Lists;
-    SourceTable = "TJP Cognitive Service Setup";
+    SourceTable = "TJP Form Recognizer Setup";
 
     layout
     {
