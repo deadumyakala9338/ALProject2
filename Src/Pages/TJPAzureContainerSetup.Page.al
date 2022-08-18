@@ -10,23 +10,27 @@ page 50702 "TJP Azure Container setup"
     {
         area(Content)
         {
-            group(GroupName)
+            group(General)
             {
                 field(AccountName; Rec."Account Name")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'TBD';
                 }
                 field(ContainerName; Rec."Container Name")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'TBD';
                 }
                 field("Container Path"; Rec."Container Path")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'TBD';
                 }
                 field(SharedAccessKey; Rec."Shared Access Key")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'TBD';
                     ExtendedDatatype = Masked;
                 }
             }

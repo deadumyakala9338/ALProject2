@@ -1,4 +1,4 @@
-/*{
+{
     "al.enableCodeAnalysis": true,
     "al.codeAnalyzers": [
         "${CodeCop}",
@@ -7,4 +7,3 @@
     ],
     "editor.guides.bracketPairs": true,
 }
-*/

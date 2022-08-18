@@ -1,4 +1,4 @@
-table 50702 "TJP Azure Container setup"
+table 50702 "TJP Azure Container Setup"
 {
     fields
     {

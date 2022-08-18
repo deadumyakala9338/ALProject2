@@ -5,10 +5,10 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
     var
         TJPFormRecognizerSetup: Record "TJP Form Recognizer Setup";
         TJPAzureContainersetup: Record "TJP Azure Container setup";
-        ContentAnalyze: HttpContent;
-        HeadersAnalyze: HttpHeaders;
-        ClientAnalyze: HttpClient;
-        ResponseAnalyze: HttpResponseMessage;
+        HttpContent: HttpContent;
+        HttpHeaders: HttpHeaders;
+        HttpClient: HttpClient;
+        HttpResponseMessage: HttpResponseMessage;
         ToJsonObj: JsonObject;
         ServiceEndpointUri: Text;
         ServiceApimKey: Text;
@@ -30,48 +30,45 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
         ToJsonObj.Add('source', SourceFileUri);
         ToJsonObj.WriteTo(JsonContent);
 
-        ContentAnalyze.Clear();
-        ContentAnalyze.WriteFrom(JsonContent);
-        ContentAnalyze.Getheaders(HeadersAnalyze);
-        if (HeadersAnalyze.Contains('Content-Type')) then
-            HeadersAnalyze.Remove('Content-Type');
-        HeadersAnalyze.Add('Content-Type', 'application/json');
-        HeadersAnalyze.Add('Ocp-Apim-Subscription-Key', ServiceApimKey);
+        HttpContent.Clear();
+        HttpContent.WriteFrom(JsonContent);
+        HttpContent.Getheaders(HttpHeaders);
+        if (HttpHeaders.Contains('Content-Type')) then
+            HttpHeaders.Remove('Content-Type');
+        HttpHeaders.Add('Content-Type', 'application/json');
+        HttpHeaders.Add('Ocp-Apim-Subscription-Key', ServiceApimKey);
 
-        if not ClientAnalyze.Post(ServiceEndpointUri, ContentAnalyze, ResponseAnalyze) then
+        if not HttpClient.Post(ServiceEndpointUri, HttpContent, HttpResponseMessage) then
             Error('Invalid http response');
-        if not ResponseAnalyze.IsSuccessStatusCode then
+        if not HttpResponseMessage.IsSuccessStatusCode then
             Error('Error in http response status');
-        if (ResponseAnalyze.Headers.Contains('Operation-Location')) then begin
-            ResponseAnalyze.Headers.GetValues('Operation-Location', OperationLocations);
+        if (HttpResponseMessage.Headers.Contains('Operation-Location')) then begin
+            HttpResponseMessage.Headers.GetValues('Operation-Location', OperationLocations);
             OperationLocation := OperationLocations[1];
             RequestStatus := '';
             while (RequestStatus <> 'succeeded') do begin
                 Sleep(5000);
                 RequestStatus := GetCognitiveResult(OperationLocation);
             end;
-        end else begin
+        end else
             Error('Error in Operation-Location');
-        end;
 
         exit(true);
     end;
 
 
-    procedure GetCognitiveResult(var operationLocation: Text): Text
+    procedure GetCognitiveResult(OperationLocation: Text): Text
     var
         TJPFormRecognizerSetup: Record "TJP Form Recognizer Setup";
-        SRSetup: Record "Sales & Receivables Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
-        NoSeriesMgmt: Codeunit NoSeriesManagement;
-        RequestResult: HttpRequestMessage;
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+        HttpRequestMessage: HttpRequestMessage;
         HeadersResult: HttpHeaders;
-        ClientResult: HttpClient;
-        ResponseResult: HttpResponseMessage;
+        HttpClient: HttpClient;
+        HttpResponseMessage: HttpResponseMessage;
         ReadJsonObject: JsonObject;
-        ReadJsonToken: JsonToken;
-        LineDataJsonObj: JsonObject;
         LineDataToken: JsonToken;
         ValueJsonArr: JsonArray;
         OrderNoToken: JsonToken;
@@ -105,19 +102,19 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
 
         ServiceApimKey := TJPFormRecognizerSetup.Apim_key;
 
-        RequestResult.Getheaders(HeadersResult);
+        HttpRequestMessage.Getheaders(HeadersResult);
         HeadersResult.Add('Ocp-Apim-Subscription-Key', ServiceApimKey);
-        RequestResult.Method := 'GET';
-        RequestResult.SetRequestUri(operationLocation);
+        HttpRequestMessage.Method := 'GET';
+        HttpRequestMessage.SetRequestUri(OperationLocation);
 
         Resultstatus := '';
-        ClientResult.Clear();
-        httpStatus := ClientResult.Send(RequestResult, ResponseResult);
+        HttpClient.Clear();
+        httpStatus := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
         if not httpStatus then
             Error('Invalid http response 2');
-        if not ResponseResult.IsSuccessStatusCode then
+        if not HttpResponseMessage.IsSuccessStatusCode then
             Error('Error in http response status 2');
-        if not ResponseResult.Content().ReadAs(ResponseText) then
+        if not HttpResponseMessage.Content().ReadAs(ResponseText) then
             Error('Error in http response content');
         if not ReadJsonObject.ReadFrom(ResponseText) then
             Error('Invalid response, expected an JSON array as root object');
@@ -126,14 +123,14 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
         if (Resultstatus = 'succeeded') then begin
             OrderNoQuery := '$.analyzeResult.documentResults[0].fields.OrderNo.text';
             ReadJsonObject.SelectToken(OrderNoQuery, OrderNoToken);
-            OrderNo := OrderNoToken.AsValue().AsCode();
+            OrderNo := CopyStr(OrderNoToken.AsValue().AsCode(), 1, MaxStrLen(OrderNo));
             VendNoQuery := '$.analyzeResult.documentResults[0].fields.VendorNo.text';
             ReadJsonObject.SelectToken(VendNoQuery, VendNoToken);
-            VendNo := VendNoToken.AsValue().AsCode();
+            VendNo := CopyStr(VendNoToken.AsValue().AsCode(), 1, MaxStrLen(VendNo));
 
             Clear(DocNo);
-            SRSetup.Get();
-            DocNo := NoSeriesMgmt.GetNextNo(SRSetup."Order Nos.", 0D, TRUE);
+            SalesReceivablesSetup.Get();
+            DocNo := NoSeriesManagement.GetNextNo(SalesReceivablesSetup."Order Nos.", 0D, TRUE);
 
             PurchaseHeader.Init();
             PurchaseHeader.Validate("Document Type", PurchaseHeader."Document Type"::Order);
@@ -159,7 +156,6 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
                 ValueJsonObj.SelectToken(ItemUnitCostQuery, ItemUnitCostToken);
                 ItemUnitCost := ItemUnitCostToken.AsValue().AsDecimal();
 
-                //LineNo := GetLastLineNo(PurchaseHeader."No.");
                 LineNo += 10000;
 
                 PurchaseLine.Init();
@@ -187,19 +183,6 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
     begin
         if not JsonObject.SelectToken(Path, JsonToken) then
             Error('Could not find a token with path %1', Path);
-    end;
-
-    local procedure GetLastLineNo(pDocNo: Code[20]): Integer
-    var
-        SalesLine: Record "Sales Line";
-        LineNo: Integer;
-    begin
-        LineNo := 0;
-        SalesLine.Reset();
-        SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
-        SalesLine.SetRange("Document No.", pDocNo);
-        if SalesLine.FindLast() then
-            LineNo := SalesLine."Line No.";
     end;
 
     /*

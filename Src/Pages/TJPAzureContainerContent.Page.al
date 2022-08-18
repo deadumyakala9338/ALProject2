@@ -18,14 +18,17 @@ page 50703 "TJP Azure Container Content"
                 field(FullName; Rec."Full Name")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'TBD';
                 }
                 field(ContentType; Rec."Content Type")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'TBD';
                 }
                 field(LastModified; Rec."Last Modified")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'TBD';
                 }
             }
         }
@@ -35,33 +38,37 @@ page 50703 "TJP Azure Container Content"
     {
         area(Processing)
         {
+            action(Upload)
+            {
+                ApplicationArea = All;
+                Caption = 'Upload';
+                ToolTip = 'TBD';
+                Image = Insert;
+
+                trigger OnAction();
+                begin
+                    PutBlobBlockBlobUI();
+                    ABSBlobClient.ListBlobs(Rec);
+                end;
+            }
             action(Download)
             {
                 ApplicationArea = All;
                 Caption = 'Download';
+                ToolTip = 'TBD';
+                Image = Download;
 
                 trigger OnAction();
                 begin
                     ABSBlobClient.GetBlobAsFile(Rec."Full Name");
                 end;
             }
-            action(Upload)
-            {
-                ApplicationArea = All;
-                Caption = 'Upload';
-
-                trigger OnAction();
-                var
-                    SourceStream: InStream;
-                begin
-                    PutBlobBlockBlobUI();
-                    ABSBlobClient.ListBlobs(Rec);
-                end;
-            }
             action(Delete)
             {
                 ApplicationArea = All;
                 Caption = 'Delete';
+                ToolTip = 'TBD';
+                Image = Delete;
 
                 trigger OnAction();
                 begin
@@ -73,6 +80,8 @@ page 50703 "TJP Azure Container Content"
             {
                 ApplicationArea = All;
                 Caption = 'Analyze File';
+                ToolTip = 'TBD';
+                Image = AnalysisView;
 
                 trigger OnAction();
                 var
@@ -87,36 +96,36 @@ page 50703 "TJP Azure Container Content"
 
     trigger OnOpenPage()
     begin
-        ABSContainersetup.Get;
-        Authorization := StorageServiceAuthorization.CreateSharedKey(ABSContainersetup."Shared Access Key");
-        ABSBlobClient.Initialize(ABSContainersetup."Account Name", ABSContainersetup."Container Name", Authorization);
+        TJPAzureContainerSetup.Get();
+        Authorization := StorageServiceAuthorization.CreateSharedKey(TJPAzureContainerSetup."Shared Access Key");
+        ABSBlobClient.Initialize(TJPAzureContainerSetup."Account Name", TJPAzureContainerSetup."Container Name", Authorization);
 
-        Response := ABSBlobClient.ListBlobs(Rec);
+        ABSOperationResponse := ABSBlobClient.ListBlobs(Rec);
 
-        If Response.GetError() <> '' then
-            message(format(Response.GetError()));
+        If ABSOperationResponse.GetError() <> '' then
+            message(format(ABSOperationResponse.GetError()));
 
     end;
 
     //Because of error in codeunit 9051 "ABS Client Impl." procedure PutBlobBlockBlobUI
     procedure PutBlobBlockBlobUI(): Codeunit "ABS Operation Response"
     var
-        OperationResponse: Codeunit "ABS Operation Response";
+        ABSOptionalParameters: Codeunit "ABS Optional Parameters";
+        _ABSOperationResponse: Codeunit "ABS Operation Response";
         Filename: Text;
-        SourceStream: InStream;
-        OptionalParameters: Codeunit "ABS Optional Parameters";
+        InStream: InStream;
     begin
-        if UploadIntoStream('Choose file', '', 'All files (*.*)|*.*', Filename, SourceStream) then
-            OperationResponse := ABSBlobClient.PutBlobBlockBlobStream(Filename, SourceStream, OptionalParameters);
+        if UploadIntoStream('Choose file', '', 'All files (*.*)|*.*', Filename, InStream) then
+            _ABSOperationResponse := ABSBlobClient.PutBlobBlockBlobStream(Filename, InStream, ABSOptionalParameters);
 
-        exit(OperationResponse);
+        exit(_ABSOperationResponse);
     end;
 
     var
+        TJPAzureContainerSetup: Record "TJP Azure Container Setup";
         ABSBlobClient: codeunit "ABS Blob Client";
-        Authorization: Interface "Storage Service Authorization";
         StorageServiceAuthorization: Codeunit "Storage Service Authorization";
-        Response: Codeunit "ABS Operation Response";
-        ABSContainerContent: Record "ABS Container Content";
-        ABSContainersetup: Record "TJP Azure Container setup";
+        ABSOperationResponse: Codeunit "ABS Operation Response";
+        Authorization: Interface "Storage Service Authorization";
+
 }
