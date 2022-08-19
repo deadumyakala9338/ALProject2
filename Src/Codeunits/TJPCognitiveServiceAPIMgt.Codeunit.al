@@ -64,26 +64,21 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         NoSeriesManagement: Codeunit NoSeriesManagement;
-        HttpRequestMessage: HttpRequestMessage;
-        HeadersResult: HttpHeaders;
+        HttpHeaders: HttpHeaders;
         HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
         ReadJsonObject: JsonObject;
+        ValueJsonObj: JsonObject;
         LineDataToken: JsonToken;
         ValueJsonArr: JsonArray;
         OrderNoToken: JsonToken;
         VendNoToken: JsonToken;
-        ItemNoQuery: Text;
         ItemNoToken: JsonToken;
-        ItemNo: Text;
-        ItemQtyQuery: Text;
         ItemQtyToken: JsonToken;
-        ItemQty: Decimal;
-        ItemUnitCostQuery: Text;
         ItemUnitCostToken: JsonToken;
-        ItemUnitCost: Decimal;
         ValueObjectJsonToken: JsonToken;
-        ValueJsonObj: JsonObject;
+        DocNo: Code[20];
         OrderNo: Code[20];
         VendNo: Code[20];
         ServiceApimKey: Text;
@@ -92,9 +87,14 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
         OrderNoQuery: Text;
         VendNoQuery: Text;
         LineDataQuery: Text;
-        DocNo: Code[20];
+        ItemNoQuery: Text;
+        ItemNo: Text;
+        ItemQtyQuery: Text;
+        ItemUnitCostQuery: Text;
         LineNo: Integer;
         i: Integer;
+        ItemQty: Decimal;
+        ItemUnitCost: Decimal;
         HttpStatus: Boolean;
     begin
         if not TJPFormRecognizerSetup.FindFirst() then
@@ -102,8 +102,8 @@ codeunit 50700 "TJP Cognitive Service API Mgt."
 
         ServiceApimKey := TJPFormRecognizerSetup.Apim_key;
 
-        HttpRequestMessage.Getheaders(HeadersResult);
-        HeadersResult.Add('Ocp-Apim-Subscription-Key', ServiceApimKey);
+        HttpRequestMessage.Getheaders(HttpHeaders);
+        HttpHeaders.Add('Ocp-Apim-Subscription-Key', ServiceApimKey);
         HttpRequestMessage.Method := 'GET';
         HttpRequestMessage.SetRequestUri(OperationLocation);
 
