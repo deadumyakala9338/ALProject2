@@ -91,6 +91,36 @@ page 50703 "TJP Azure Container Content"
                         exit;
                 end;
             }
+            action(CheckContent)
+            {
+                ApplicationArea = All;
+                Caption = 'Content';
+                ToolTip = 'TBD';
+                Image = Check;
+
+                trigger OnAction()
+                var
+                    TJPAzureContainerSetup: Record "TJP Azure Container Setup";
+                    ContainerContent: Record "ABS Container Content";
+                    Response: Codeunit "ABS Operation Response";
+                    BlobClient: Codeunit "ABS Blob Client";
+                    StorageServiceAuthorization: Codeunit "Storage Service Authorization";
+                    Authorization: Interface "Storage Service Authorization";
+                    ContentCount: Integer;
+                begin
+                    ContentCount := 0;
+                    TJPAzureContainerSetup.Get();
+                    Authorization := StorageServiceAuthorization.CreateSharedKey(TJPAzureContainerSetup."Shared Access Key");
+                    BlobClient.Initialize('storageaccountftpbc', 'importcontainer', Authorization);
+                    Response := BlobClient.ListBlobs(ContainerContent);
+                    if Response.IsSuccessful() then
+                        if ContainerContent.FindSet() then
+                            repeat
+                                ContentCount += 1;
+                            until ContainerContent.Next() = 0;
+                    Message('%1', ContentCount);
+                end;
+            }
         }
     }
 

@@ -5,7 +5,7 @@
             "name": "Microsoft cloud sandbox",
             "request": "launch",
             "type": "al",
-            "tenant": "da4f5ab0-1664-4972-8bcf-1aca992c10b0",
+            "tenant": "c018ff26-33a5-41ea-8872-9e735474d68a",
             "environmentType": "Sandbox",
             "environmentName": "Sandbox",
             "breakOnError": true,
